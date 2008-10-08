@@ -22,6 +22,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+# this script is still very ugly
+
 import os, random, time, sys
 import pygame
 from pygame import font, joystick, event
