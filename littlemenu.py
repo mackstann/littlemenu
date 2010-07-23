@@ -44,19 +44,38 @@ def init():
 
     reload(gui)
 
+    pygame.key.set_repeat(240, 40)
+
     gui.defaultListBoxStyle = {}
-    gui.defaultListBoxStyle['font'] = pygame.font.Font(None, font_size)
-    gui.defaultListBoxStyle['font'].set_bold(True)
-    gui.defaultListBoxStyle['antialias'] = True
-    gui.defaultListBoxStyle['item-height'] = int(font_size * 1.2)
-    gui.defaultListBoxStyle['bg-color'] = bg
-    gui.defaultListBoxStyle['bg-color-over'] = (200,0,0) #irrelevant
-    gui.defaultListBoxStyle['bg-color-selected'] = fg
-    gui.defaultListBoxStyle['font-color'] = fg
-    gui.defaultListBoxStyle['font-color-selected'] = bg
-    gui.defaultListBoxStyle['padding'] = 0
+    gui.defaultListBoxStyle['font'] = pygame.font.Font('/usr/share/fonts/truetype/ttf-droid/DroidSans-Bold.ttf', font_size)
+    #gui.defaultListBoxStyle['font'].set_bold(True)
+    gui.defaultListBoxStyle['antialias'] = False
+    gui.defaultListBoxStyle['item-height'] = int(font_size * 2)
+    gui.defaultListBoxStyle['padding'] = 20
     gui.defaultListBoxStyle['autosize'] = False
     gui.defaultListBoxStyle['border-width'] = 0
+
+    # for generating random bg/fg colors
+    #bg = (
+    #    random.randint(0, 255),
+    #    random.randint(0, 255),
+    #    random.randint(0, 255),
+    #)
+    #fg = (
+    #    random.randint(0, 255),
+    #    random.randint(0, 255),
+    #    random.randint(0, 255),
+    #)
+    #print bg, fg
+
+    # ok, i found a combo i like for now
+    #bg, fg = (100, 91, 214), (183, 241, 222)
+    bg, fg = (20, 20, 20), (200, 200, 200)
+
+    gui.defaultListBoxStyle['bg-color'] = (20, 20, 20)
+    gui.defaultListBoxStyle['bg-color-selected'] = (60, 60, 60)
+    gui.defaultListBoxStyle['font-color'] = (200, 200, 200)
+    gui.defaultListBoxStyle['font-color-selected'] = (200, 200, 200)
 
     global clock
     clock = pygame.time.Clock()
@@ -99,13 +118,13 @@ def rungame(filename):
 
 class Back(object):
     def __str__(self):
-        return '< Back'
+        return '<  Back'
     def __call__(self):
         pop_menu()
 
 class Exit(object):
     def __str__(self):
-        return '[ Exit ]'
+        return 'Close Menu'
     def __call__(self):
         shutdown()
         raise SystemExit
@@ -159,8 +178,8 @@ def pop_menu():
 
 menus = {
     'Emulators': [SubMenu('NES'), SubMenu('SNES'), Exit()],
-    'NES':  [Back()] + directory('fceux', os.path.expanduser('~/roms/nes'), ['.nes']) + [Back()],
-    'SNES': [Back()] + directory('zsnes', os.path.expanduser('~/roms/snes'), ['.fig', '.smc', '.zip']) + [Back()],
+    'NES':  [Back()] + directory('fceux', os.path.expanduser('~/nasty/ROMs/NES'), ['.nes']) + [Back()],
+    'SNES': [Back()] + directory('zsnes', os.path.expanduser('~/nasty/ROMs/SNES'), ['.fig', '.smc', '.zip']) + [Back()],
 }
 main = 'Emulators'
 
@@ -169,23 +188,7 @@ main = 'Emulators'
 up_button = 4
 down_button = 5
 
-# for generating random bg/fg colors
-#bg = (
-#    random.randint(0, 255),
-#    random.randint(0, 255),
-#    random.randint(0, 255),
-#)
-#fg = (
-#    random.randint(0, 255),
-#    random.randint(0, 255),
-#    random.randint(0, 255),
-#)
-#print bg, fg
-
-# ok, i found a combo i like for now
-bg, fg = (100, 91, 214), (183, 241, 222)
-
-font_size = 24
+font_size = 40
 
 sticks = []
 screen = None
@@ -208,14 +211,23 @@ while 1:
     
     startover = False
     gui.events = pygame.event.get()
+
+    # the gui module takes care of scrolling with the up/down keys and mouse
+    # wheel.  all other input, we must handle ourselves.
+
     for e in gui.events:
         # any button other than the scroll buttons will execute a menu item
-        if e.type == pygame.JOYBUTTONDOWN and e.button not in (down_button, up_button):
+        if (e.type == pygame.JOYBUTTONDOWN and e.button not in (down_button, up_button)) or \
+                (e.type == pygame.KEYDOWN and e.key == pygame.K_RETURN):
             item = listbox.items[listbox.selectedIndex]
             item()
             if isinstance(item, Game):
                 startover = True
                 break
+
+        if e.type == pygame.KEYDOWN and e.key == pygame.K_ESCAPE:
+            pop_menu()
+
     if startover:
         continue
 
@@ -226,16 +238,20 @@ while 1:
         axisvalue = stick.get_axis(1)
         if abs(axisvalue) > 0.7 and now - lastmove > 0.15:
             if axisvalue > 0:
+                print 'axis down!'
                 tomovedown += 1
             else:
+                print 'axis up!'
                 tomoveup += 1
             lastmove = now
 
         if stick.get_button(up_button):
+            print 'button up!'
             tomoveup += desired_scroll_num_per_sec * elapsed
             tomovedown = 0
 
         if stick.get_button(down_button):
+            print 'button down!'
             tomovedown += desired_scroll_num_per_sec * elapsed
             tomoveup = 0
 
@@ -245,8 +261,8 @@ while 1:
         for i in range(int(tomoveup)):
             listbox.moveUp()
 
-        tomovedown %= 1
-        tomoveup %= 1
+        tomovedown = 0
+        tomoveup = 0
 
     lastcheck = now
     

@@ -1390,7 +1390,7 @@ class ListBox(Widget):
             draw.rect(self.surf, bgcolor, Rect(0, i * itemheight, self.surf.get_width(), itemheight))
                 
             render = self.style['font'].render(str(self.items[i]), True, fontcolor, bgcolor)
-            self.surf.blit(render, (2,i * itemheight + itemheight / 2 - render.get_height() /2 ))
+            self.surf.blit(render, (self.style['padding'],i * itemheight + itemheight / 2 - render.get_height() /2 ))
     
     
     def draw(self, surf):
